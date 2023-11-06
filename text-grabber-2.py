@@ -29,7 +29,7 @@ extracted_file_name = "extracted_text.txt"
 if os.path.exists(extracted_file_name):
     extracted_file_name = get_unique_filename("extracted_text", "txt")
 
-# Create a report text file
+# Create a report text file with the unique filename
 with open(report_file_name, "w", encoding="utf-8") as report_file:
     page_count = 0
     total_entry_count = 0  # Initialize total entry count
@@ -79,7 +79,7 @@ with open(report_file_name, "w", encoding="utf-8") as report_file:
                     report_file.write(f"Missing 'entrytitle' or 'entrybody' for Entry {entry_number}.\n")
                     missing_entries.append(entry_number)
 
-                # Create a text file to store extracted content for each entry
+                # Create a text file to store extracted content for each entry with the unique filename
                 with open(extracted_file_name, "a", encoding="utf-8") as text_file:
                     entrytitle = entry_element.find_element(By.CLASS_NAME, 'entrytitle')
                     entrybody = entry_element.find_element(By.CLASS_NAME, 'entrybody')
@@ -87,10 +87,20 @@ with open(report_file_name, "w", encoding="utf-8") as report_file:
                     h2_element = entrytitle.find_element(By.TAG_NAME, 'h2')
                     h2_text = h2_element.text if h2_element.text else ""
 
-                    body_text = entrybody.text
+                    # Extract text within <p> elements inside 'entrybody'
+                    p_elements = entrybody.find_elements(By.TAG_NAME, 'p')
+                    body_text = "\n".join(p.text for p in p_elements)
 
                     # Replace <p>&nbsp;</p> with empty lines
                     body_text = body_text.replace('<p>&nbsp;</p>', '\n')
+
+                    # Change the script to look for the HTML structure within entrybody
+                    # Find all occurrences of <p>&nbsp;</p> within entrybody element
+                    nbsp_p_elements = entrybody.find_elements(By.XPATH, ".//p[contains(., '&nbsp;')]")
+
+                    # Replace each occurrence with '\n' in the body_text
+                    for nbsp_p_element in nbsp_p_elements:
+                        body_text = body_text.replace(nbsp_p_element.text, '\n')
 
                     if h2_text:
                         text_file.write("***\n\n" + h2_text + "\n\n" + body_text + "\n\n")

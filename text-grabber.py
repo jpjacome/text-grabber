@@ -94,6 +94,14 @@ with open(report_file_name, "w", encoding="utf-8") as report_file:
                     # Replace <p>&nbsp;</p> with empty lines
                     body_text = body_text.replace('<p>&nbsp;</p>', '\n')
 
+                    # Change the script to look for the HTML structure within entrybody
+                    # Find all occurrences of <p>&nbsp;</p> within entrybody element
+                    nbsp_p_elements = entrybody.find_elements(By.XPATH, ".//p[contains(., '&nbsp;')]")
+
+                    # Replace each occurrence with '\n' in the body_text
+                    for nbsp_p_element in nbsp_p_elements:
+                        body_text = body_text.replace(nbsp_p_element.text, '\n')
+
                     if h2_text:
                         text_file.write("***\n\n" + h2_text + "\n\n" + body_text + "\n\n")
                     else:
