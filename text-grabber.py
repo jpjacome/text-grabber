@@ -89,18 +89,23 @@ with open(report_file_name, "w", encoding="utf-8") as report_file:
 
                     # Extract text within <p> elements inside 'entrybody'
                     p_elements = entrybody.find_elements(By.TAG_NAME, 'p')
-                    body_text = "\n".join(p.text for p in p_elements)
-
-                    # Replace <p>&nbsp;</p> with empty lines
-                    body_text = body_text.replace('<p>&nbsp;</p>', '\n')
-
-                    # Change the script to look for the HTML structure within entrybody
-                    # Find all occurrences of <p>&nbsp;</p> within entrybody element
-                    nbsp_p_elements = entrybody.find_elements(By.XPATH, ".//p[contains(., '&nbsp;')]")
-
-                    # Replace each occurrence with '\n' in the body_text
-                    for nbsp_p_element in nbsp_p_elements:
-                        body_text = body_text.replace(nbsp_p_element.text, '\n')
+                    body_text = ""
+                    
+                    for p_element in p_elements:
+                        # Check for padding styling in the 'style' attribute
+                        style = p_element.get_attribute("style")
+                        if style and "padding-left:" in style:
+                            # Extract the padding value and calculate the number of spaces for indentation
+                            padding_value = int(style.split(":")[1].replace("px;", "").strip())
+                            indent = " " * (padding_value // 10)  # Adjust the divisor based on your desired indentation level
+                            body_text += indent + p_element.text
+                        else:
+                            # If no padding styling, simply append the text of the element
+                            body_text += p_element.text
+                    
+                        # Add a newline after each paragraph only if it's not the last paragraph
+                        if p_element != p_elements[-1]:
+                            body_text += '\n'
 
                     if h2_text:
                         text_file.write("***\n\n" + h2_text + "\n\n" + body_text + "\n\n")
